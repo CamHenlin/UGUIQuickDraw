@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+4d278d58856684e3f25b8660c7502407 CMakeFiles/UGUIQuickDraw_APPL
+e972f7e0ea129a63556d1cfe500e4cd3 Sample.r.rsrc.bin
+f0d1d0996107348916e3c0f4645b2c70 UGUIQuickDraw.bin

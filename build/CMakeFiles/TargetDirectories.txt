@@ -1,0 +1,4 @@
+/home/camh/Documents/Retro68kApps/UGUIQuickDraw/build/CMakeFiles/rebuild_cache.dir
+/home/camh/Documents/Retro68kApps/UGUIQuickDraw/build/CMakeFiles/edit_cache.dir
+/home/camh/Documents/Retro68kApps/UGUIQuickDraw/build/CMakeFiles/UGUIQuickDraw_APPL.dir
+/home/camh/Documents/Retro68kApps/UGUIQuickDraw/build/CMakeFiles/UGUIQuickDraw.dir
