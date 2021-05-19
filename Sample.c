@@ -30,7 +30,7 @@
 
 #define BUFFER_SIZE         ((handle->simX * simCfg->screenMultiplier) * (handle->simY * simCfg->screenMultiplier)) * sizeof(UG_U32)
 
-
+#define UGUI_USE_COLOR_BW
 #define WINDOW_WIDTH 510
 #define WINDOW_HEIGHT 302
 
@@ -84,36 +84,65 @@ void write_log(char* text) {
 #define TopLeft(aRect)	(* (Point *) &(aRect).top)
 #define BotRight(aRect)	(* (Point *) &(aRect).bottom)
 
+#define BitSet(arg, posn) ((arg) | (1L << (posn)))
+
 UG_DEVICE device;
 Boolean initialState = true;
 simcfg_t *simCfg;
+
+BitMap RealMap;
+// bit color;
+int n;
+
+static void putpixel(unsigned char* screen, int x, int y, int color) {
+    // unsigned where = x + y * 512;
+    // screen[where] |= 1 << color;
+
+    // this should be the byte location of the pixel
+    unsigned char* location = screen + y * 64 + ((x / 8) | 0);
+
+    // now we need to set the individual bit for the pixel
+    *location |= color << 7 - x % 8;
+
+    // char log[255];
+    // sprintf(log, "putpixel: x: %d, y: %d, color: %d, where: %d, x mod 8: %d, x / 8: %d", x, y, color, location, x % 8, (x / 8) | 0);
+    // writeSerialPort(boutRefNum,log);
+}
+
 void quickdraw_pset(short int x,  short int y ,  unsigned char c)
 {
 
 	// writeSerialPort(boutRefNum, "DRAW PIXEL");
-	// char log[255];
-	// sprintf(log, "%d, %d - %d", x, y, c);
-	// writeSerialPort(boutRefNum,log);
 
     // EraseRect(&gMainOffScreen.bounds);
-    if (c == C_WHITE && initialState == true) {
+    // if (c == C_WHITE && initialState == true) {
 
-    	return;
-    }
+    // 	return;
+    // }
 	
+        WindowPtr window = FrontWindow();
+
+    // char log[255];
+    // sprintf(log, "rowBytes: %d, x: %d, y: %d, c: %d, left: %d, top: %d", window->portBits.rowBytes, x, y, c, -window->portBits.bounds.left, -window->portBits.bounds.top);
+    // writeSerialPort(boutRefNum,log);
+
     if (c == C_WHITE) {
 
-	    ForeColor(whiteColor);
+        putpixel((unsigned char *)window->portBits.baseAddr, -window->portBits.bounds.left + x, -window->portBits.bounds.top + y, 0);
     } else {
 
-	    ForeColor(blackColor);
+        putpixel((unsigned char *)window->portBits.baseAddr, -window->portBits.bounds.left + x, -window->portBits.bounds.top + y, 1);
     }
 
 
+    // BitSet((int)RealMap.baseAddr, n);
+
     
-    MoveTo((float)x, (float)y);
-    LineTo((float)x+1, (float)y+1);
+    // MoveTo((float)x, (float)y);
+    // LineTo((float)x+1, (float)y+1);
 }
+
+
 void quickdraw_flush()
 {
 
@@ -136,7 +165,18 @@ void main()
     	writeSerialPort(boutRefNum, "call GUI_SimCfg");
     #endif
 
+        WindowPtr window = FrontWindow();
+    // for (int i = 0; i < 384; i++) {
+
+    //     for (int j = 0; j < 512; j++) {
+
+    //         putpixel((unsigned char *)window->portBits.baseAddr, j, i, 1);
+    //     }
+    // }
+
     quickdraw_init(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    RealMap = qd.thePort->portBits;
 
     simCfg = GUI_SimCfg();
 
@@ -149,6 +189,7 @@ void main()
 
 	    writeSerialPort(boutRefNum, "call GUI_Setup");
 	#endif
+        
 	GUI_Setup(&device);
 
     #ifdef MAC_APP_DEBUGGING
@@ -184,19 +225,19 @@ void EventLoop()
 
 	do {
 
-	    OpenPort(&gMainOffScreen.BWPort);
-	    SetPort(&gMainOffScreen.BWPort);
-	    SetPortBits(&gMainOffScreen.BWBits);
+	    // OpenPort(&gMainOffScreen.BWPort);
+	    // SetPort(&gMainOffScreen.BWPort);
+	    // SetPortBits(&gMainOffScreen.BWBits);
 	    // EraseRect(&gMainOffScreen.bounds);
 		GUI_Process();
-	    WindowPtr window = FrontWindow();
+	    //WindowPtr window = FrontWindow();
 
-	    SetPort(window);
+	    // SetPort(window);
 
         		writeSerialPort(boutRefNum, "COPY BITS!!!!!");
 	    // our offscreen bitmap is the same size as our port rectangle, so we
 	    // get away with using the portRect sizing for source and destination
-	    CopyBits(&gMainOffScreen.bits->portBits, &window->portBits, &window->portRect, &window->portRect, srcCopy, 0L);
+	    // CopyBits(&gMainOffScreen.bits->portBits, &window->portBits, &window->portRect, &window->portRect, srcCopy, 0L);
 
 		GetGlobalMouse(&mouse);
 

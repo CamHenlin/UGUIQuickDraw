@@ -576,107 +576,30 @@ static void _UG_PutChar( const char chr, UG_S16 x, UG_S16 y, UG_COLOR fc, UG_COL
    if ( font->char_width % 8 ) bn++;
    actual_char_width = (font->widths ? font->widths[bt - font->start_char] : font->char_width);
 
-   /* Is hardware acceleration available? */
-   if ( gui->driver[DRIVER_FILL_AREA].state & DRIVER_ENABLED )
+  index = (bt - font->start_char)* font->char_height * bn;
+   for( j=0;j<font->char_height;j++ )
    {
-      push_pixel = ((void*(*)(UG_S16, UG_S16, UG_S16, UG_S16))gui->driver[DRIVER_FILL_AREA].driver)(x,y,x+actual_char_width-1,y+font->char_height-1);
-      
-      if (font->font_type == FONT_TYPE_1BPP)
-      {
-         index = (bt - font->start_char)* font->char_height * bn;
-        for( j=0;j<font->char_height;j++ )
-        {
-          c=actual_char_width;
-          for( i=0;i<bn;i++ )
-          {
-            b = font->p[index++];
-            for( k=0;(k<8) && c;k++ )
-            {
-               if( b & 0x01 )
-               {
-                 push_pixel(fc);
-               }
-               else
-               {
-                 push_pixel(bc);
-               }
-               b >>= 1;
-               c--;
-            }
-          }
-        }
-     }
-     #if defined(UGUI_USE_COLOR_RGB888) || defined(UGUI_USE_COLOR_RGB565)
-     else if (font->font_type == FONT_TYPE_8BPP)
+     xo = x;
+     c=actual_char_width;
+     for( i=0;i<bn;i++ )
      {
-         index = (bt - font->start_char)* font->char_height * font->char_width;
-         for( j=0;j<font->char_height;j++ )
+       b = font->p[index++];
+       for( k=0;(k<8) && c;k++ )
+       {
+         if( b & 0x01 )
          {
-           for( i=0;i<actual_char_width;i++ )
-           {
-             b = font->p[index++];
-             color = ((((fc & 0xFF) * b + (bc & 0xFF) * (256 - b)) >> 8) & 0xFF) | //Blue component
-                     ((((fc & 0xFF00) * b + (bc & 0xFF00) * (256 - b)) >> 8)  & 0xFF00) | //Green component
-                     ((((fc & 0xFF0000) * b + (bc & 0xFF0000) * (256 - b)) >> 8) & 0xFF0000); //Red component
-             push_pixel(color);
-           }
-           index += font->char_width - actual_char_width;
-        }
+            gui->device->pset(xo,yo,fc);
+         }
+         else
+         {
+            gui->device->pset(xo,yo,bc);
+         }
+         b >>= 1;
+         xo++;
+         c--;
+       }
      }
-     #endif
-   }
-   else
-   {
-      /*Not accelerated output*/
-      if (font->font_type == FONT_TYPE_1BPP)
-      {
-         index = (bt - font->start_char)* font->char_height * bn;
-         for( j=0;j<font->char_height;j++ )
-         {
-           xo = x;
-           c=actual_char_width;
-           for( i=0;i<bn;i++ )
-           {
-             b = font->p[index++];
-             for( k=0;(k<8) && c;k++ )
-             {
-               if( b & 0x01 )
-               {
-                  gui->device->pset(xo,yo,fc);
-               }
-               else
-               {
-                  gui->device->pset(xo,yo,bc);
-               }
-               b >>= 1;
-               xo++;
-               c--;
-             }
-           }
-           yo++;
-         }
-      }
-      #if defined(UGUI_USE_COLOR_RGB888) || defined(UGUI_USE_COLOR_RGB565)
-      else if (font->font_type == FONT_TYPE_8BPP)
-      {
-         index = (bt - font->start_char)* font->char_height * font->char_width;
-         for( j=0;j<font->char_height;j++ )
-         {
-            xo = x;
-            for( i=0;i<actual_char_width;i++ )
-            {
-               b = font->p[index++];
-               color = ((((fc & 0xFF) * b + (bc & 0xFF) * (256 - b)) >> 8) & 0xFF) | //Blue component
-                       ((((fc & 0xFF00) * b + (bc & 0xFF00) * (256 - b)) >> 8)  & 0xFF00) | //Green component
-                       ((((fc & 0xFF0000) * b + (bc & 0xFF0000) * (256 - b)) >> 8) & 0xFF0000); //Red component
-               gui->device->pset(xo,yo,color);
-               xo++;
-            }
-            index += font->char_width - actual_char_width;
-            yo++;
-         }
-      }
-      #endif
+     yo++;
    }
 }
 
